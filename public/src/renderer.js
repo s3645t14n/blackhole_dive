@@ -1,5 +1,7 @@
 ﻿import { PHYSICS } from './state.js';
 
+const CAMERA_SMOOTH_SPEED = 8.0;
+
 function createBackgroundStars(count = 55) {
   const stars = [];
   const tints = ['255, 255, 255', '210, 228, 255', '255, 240, 215'];
@@ -25,7 +27,15 @@ export function createCamera(canvas) {
     width: window.innerWidth,
     height: window.innerHeight,
     dpr: window.devicePixelRatio || 1,
-    scale: 1
+    x: 0,
+    y: 0,
+    scale: 1,
+    baseScale: 1,
+    maxScale: 1,
+    targetX: 0,
+    targetY: 0,
+    targetScale: 1,
+    lastRenderMs: null
   };
 
   const backgroundStars = createBackgroundStars(55);
@@ -40,13 +50,71 @@ export function createCamera(canvas) {
 
     const minDim = Math.min(camera.width, camera.height);
     const radius = Math.max(100, worldState.systemRadius || 600);
-    camera.scale = minDim / (2 * radius * 1.05);
+    camera.baseScale = minDim / (2 * radius * 1.05);
+    camera.maxScale = Math.max(camera.baseScale, 1.0);
 
-    worldState.bounds.halfWidth = (camera.width * 0.5) / camera.scale;
-    worldState.bounds.halfHeight = (camera.height * 0.5) / camera.scale;
+    worldState.bounds.halfWidth = (camera.width * 0.5) / camera.baseScale;
+    worldState.bounds.halfHeight = (camera.height * 0.5) / camera.baseScale;
+    worldState.cameraNeedsSnap = true;
   }
 
   return { camera, resize, backgroundStars };
+}
+
+function computeZoomCameraTarget(camera, shipX, shipY) {
+  const { width, height, baseScale, maxScale } = camera;
+  const spanX = 0.6 * width;
+  const spanY = 0.6 * height;
+
+  let scale = maxScale;
+  const absX = Math.abs(shipX);
+  const absY = Math.abs(shipY);
+
+  if (absX > 1e-4) {
+    scale = Math.min(scale, spanX / absX);
+  }
+  if (absY > 1e-4) {
+    scale = Math.min(scale, spanY / absY);
+  }
+  scale = Math.max(baseScale, Math.min(maxScale, scale));
+
+  return {
+    x: shipX * 0.5,
+    y: shipY * 0.5,
+    scale
+  };
+}
+
+function updateCamera(camera, worldState, shipX, shipY, nowMs) {
+  const frameDt =
+    camera.lastRenderMs === null
+      ? 0
+      : Math.min(0.1, Math.max(0, (nowMs - camera.lastRenderMs) * 0.001));
+  camera.lastRenderMs = nowMs;
+
+  if (!worldState.zoomMode) {
+    camera.targetX = 0;
+    camera.targetY = 0;
+    camera.targetScale = camera.baseScale;
+  } else if (worldState.cameraNeedsSnap || worldState.ship.status !== 'exploding') {
+    const target = computeZoomCameraTarget(camera, shipX, shipY);
+    camera.targetX = target.x;
+    camera.targetY = target.y;
+    camera.targetScale = target.scale;
+  }
+
+  if (worldState.cameraNeedsSnap) {
+    camera.x = camera.targetX;
+    camera.y = camera.targetY;
+    camera.scale = camera.targetScale;
+    worldState.cameraNeedsSnap = false;
+    return;
+  }
+
+  const smooth = 1 - Math.exp(-CAMERA_SMOOTH_SPEED * frameDt);
+  camera.x += (camera.targetX - camera.x) * smooth;
+  camera.y += (camera.targetY - camera.y) * smooth;
+  camera.scale += (camera.targetScale - camera.scale) * smooth;
 }
 
 function drawBackgroundStars(ctx, camera, stars, timeSec) {
@@ -333,8 +401,14 @@ function drawShip(ctx, ship, x, y, input, alpha, scale) {
 }
 
 export function renderWorld(ctx, camera, backgroundStars, worldState, input, alpha, nowMs) {
-  const { width, height, dpr, scale } = camera;
   const clampedAlpha = Math.max(0, Math.min(1, alpha));
+  const { ship } = worldState;
+  const shipX = ship.prevX + (ship.x - ship.prevX) * clampedAlpha;
+  const shipY = ship.prevY + (ship.y - ship.prevY) * clampedAlpha;
+
+  updateCamera(camera, worldState, shipX, shipY, nowMs);
+
+  const { width, height, dpr, scale, x: camX, y: camY } = camera;
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#000000';
@@ -345,6 +419,7 @@ export function renderWorld(ctx, camera, backgroundStars, worldState, input, alp
   ctx.save();
   ctx.translate(width * 0.5, height * 0.5);
   ctx.scale(scale, scale);
+  ctx.translate(-camX, -camY);
 
   const bh = worldState.blackHole;
   const planetOrbitWidth = 1 / scale;
@@ -460,9 +535,6 @@ export function renderWorld(ctx, camera, backgroundStars, worldState, input, alp
   }
 
   // 7. Трейс-шлейф за кораблем (последние 2 секунды) и траектория предикции
-  const { ship } = worldState;
-  const shipX = ship.prevX + (ship.x - ship.prevX) * clampedAlpha;
-  const shipY = ship.prevY + (ship.y - ship.prevY) * clampedAlpha;
   drawShipTrail(ctx, worldState, shipX, shipY, clampedAlpha, scale);
   drawShipPrediction(ctx, worldState, shipX, shipY, clampedAlpha, scale);
 

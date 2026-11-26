@@ -423,6 +423,7 @@ export function resetCurrentLevel(worldState) {
   worldState.tickCount = 0;
   worldState.simTime = 0;
   worldState.lastTickTime = performance.now();
+  worldState.cameraNeedsSnap = true;
 
   for (const belt of worldState.belts) {
     for (const ast of belt.asteroids) {
@@ -614,7 +615,7 @@ export function stepSimulation(worldState, input, onLevelComplete) {
     let ax = Math.cos(ship.angle) * thrust;
     let ay = Math.sin(ship.angle) * thrust;
 
-    // 1. равитация ерной дыры (действует всегда)
+    // 1. равитация черной дыры (действует всегда)
     const bhDx = blackHole.x - ship.x;
     const bhDy = blackHole.y - ship.y;
     const bhDistSq = bhDx * bhDx + bhDy * bhDy;

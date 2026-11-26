@@ -11,6 +11,7 @@ import { createCamera, renderWorld } from './renderer.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const hardModeToggle = document.getElementById('hardModeToggle');
+const zoomModeToggle = document.getElementById('zoomModeToggle');
 const resetBtn = document.getElementById('resetBtn');
 const regenBtn = document.getElementById('regenBtn');
 
@@ -22,6 +23,12 @@ hardModeToggle.addEventListener('change', () => {
   worldState.hardMode = hardModeToggle.checked;
   rebuildPrediction(worldState);
   hardModeToggle.blur();
+});
+
+zoomModeToggle.checked = worldState.zoomMode;
+zoomModeToggle.addEventListener('change', () => {
+  worldState.zoomMode = zoomModeToggle.checked;
+  zoomModeToggle.blur();
 });
 
 resetBtn.addEventListener('click', () => {

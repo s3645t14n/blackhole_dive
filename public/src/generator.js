@@ -31,6 +31,7 @@ export function generateSystem(worldState) {
   worldState.tickCount = 0;
   worldState.simTime = 0;
   worldState.lastTickTime = performance.now();
+  worldState.cameraNeedsSnap = true;
   worldState.futureSnapshots = [];
   worldState.prediction = { points: [], impact: false, hasCurrentTickPrefix: false };
 
@@ -101,7 +102,7 @@ export function generateSystem(worldState) {
 
     const hillRadius = a * (1 - e) * Math.cbrt(mass / (3 * worldState.blackHole.mass));
 
-    //  самой дальней планеты (i === planetCount - 1) луны не создаются
+    // у самой дальней планеты (i === planetCount - 1) луны не создаются
     const moonCount = i === planetCount - 1 ? 0 : randInt(0, 3);
     const moons = [];
     const minMoonOrbit = radius + 16;

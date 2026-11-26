@@ -26,10 +26,12 @@
 export const worldState = {
   level: 1,
   hardMode: false,
+  zoomMode: false,
   tickCount: 0,
   simTime: 0,
   lastTickTime: performance.now(),
   systemRadius: 1200,
+  cameraNeedsSnap: true,
   bounds: {
     halfWidth: 1260,
     halfHeight: 1260

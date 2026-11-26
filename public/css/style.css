@@ -18,11 +18,19 @@ body {
   height: 100%;
 }
 
-.hard-mode-toggle {
+.top-right-controls {
   position: fixed;
   top: 18px;
   right: 20px;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.mode-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -35,7 +43,7 @@ body {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.hard-mode-toggle input {
+.mode-toggle input {
   position: absolute;
   opacity: 0;
   width: 0;
@@ -69,7 +77,12 @@ body {
   border-color: rgba(255, 90, 90, 0.9);
 }
 
-.hard-mode-toggle input:checked + .toggle-slider::before {
+.zoom-mode-toggle input:checked + .toggle-slider {
+  background-color: rgba(55, 145, 255, 0.45);
+  border-color: rgba(85, 170, 255, 0.9);
+}
+
+.mode-toggle input:checked + .toggle-slider::before {
   transform: translateX(20px);
   background-color: #ffffff;
 }
