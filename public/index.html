@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Gravity Simulator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <label class="hard-mode-toggle" for="hardModeToggle">
+    <span class="toggle-label">HARD MODE</span>
+    <input type="checkbox" id="hardModeToggle">
+    <span class="toggle-slider"></span>
+  </label>
+
+  <div class="bottom-right-controls">
+    <button type="button" id="resetBtn" class="hud-btn">RESET</button>
+    <button type="button" id="regenBtn" class="hud-btn">REGEN</button>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

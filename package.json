@@ -1,0 +1,14 @@
+{
+  "name": "space-gravity-simulator",
+  "version": "1.0.0",
+  "description": "2D space gravity simulator on HTML5 Canvas",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
